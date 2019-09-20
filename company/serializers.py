@@ -9,3 +9,15 @@ class AdSerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
         fields = ['id', 'name', 'type', 'detail',]
+
+
+class CompanySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Company
+        fields = "__all__"
+
+class GetOnDemandCompanySerialzer(serializers.ModelSerializer):
+    class Meta:
+        model = Company
+        fields = ['id', 'name', 'type', 'detail','fee_count']

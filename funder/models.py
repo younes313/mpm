@@ -12,10 +12,12 @@ class Funder(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     national_code = models.CharField(max_length = 20)
     phone_number = models.CharField(max_length = 20)
+    total_help = models.IntegerField(default=0)
+    total_investment = models.IntegerField(default=0)
 
 
 class History(models.Model):
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    company = models.ForeignKey(Company, null=True,blank=True, on_delete=models.CASCADE)
     funder = models.ForeignKey(Funder, on_delete=models.CASCADE)
     money = models.IntegerField()
     date = models.DateTimeField(auto_now_add=True)

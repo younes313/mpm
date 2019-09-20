@@ -10,9 +10,12 @@ class Company(models.Model):
     stock_percent = models.FloatField()
     needed_fee = models.IntegerField()
     remained_fee = models.IntegerField(blank=True)
+    fee_count = models.IntegerField(default=0)
+    phone_number = models.CharField(max_length=20)
+    address = models.TextField()
     # on_demand = first phase and need money
     # call = gain enough money and we call them
-    # released 
+    # released
     status = models.CharField(max_length=10, default='on_demand')
 
     # def save(self, *args, **kwargs):
@@ -21,7 +24,7 @@ class Company(models.Model):
         # self.save()
 
     def __str__(self):
-        return self.name
+        return str(self.id) + '. ' + self.name
 
 class Comment(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
