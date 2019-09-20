@@ -36,6 +36,6 @@ class AdList(APIView):
         # queryset = list(chain(Company.objects.filter(status='ad') , Company.objects.filter(status='on_demand'))).
         li = []
         for ins in Company.objects.order_by('-id'):
-            if ins.status == 'ad' or ins.status == 'on_demand':
+            if ins.status == 'ad' or ins.status == 'call':
                 li.append(AdSerializer(ins).data)
         return Response(li, status=status.HTTP_200_OK)
