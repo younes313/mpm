@@ -1,16 +1,9 @@
-from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.http import HttpResponse
 from rest_framework import status
-from django.core.mail import EmailMessage
 from rest_framework.permissions import IsAuthenticated , AllowAny
-from rest_framework.decorators import api_view, permission_classes
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import User
-from django.contrib.auth import authenticate
-from django.shortcuts import redirect
-
 
 from .serializers import *
 from . models import *
@@ -18,22 +11,23 @@ from company.models import *
 # Create your views here.
 
 
-@permission_classes((AllowAny,))
+
 class FunderLogin(APIView):
+    permission_classes = (AllowAny,)
     def post(self, request, format=None):
-        # try:
-        user = User.objects.get(username=request.data['phone_number'])
-        if not user.check_password(request.data['national_code']):
+        try:
+            user = User.objects.get(username=request.data['phone_number'])
+            if not user.check_password(request.data['national_code']):
+                return Response({'status': False, 'error': '104'}, status=status.HTTP_200_OK)   #incorrect user pass
+            else:
+                token, _ = Token.objects.get_or_create(user=user)
+                return Response({'status':True, 'token': token.key}, status=status.HTTP_200_OK)
+        except:
             return Response({'status': False, 'error': '104'}, status=status.HTTP_200_OK)   #incorrect user pass
-        else:
-            token, _ = Token.objects.get_or_create(user=user)
-            return Response({'status':True, 'token': token.key}, status=status.HTTP_200_OK)
-        # except:
-        return Response({'status': False, 'error': '104'}, status=status.HTTP_200_OK)   #incorrect user pass
 
 
-@permission_classes((AllowAny,))
 class FunderSignUp(APIView):
+    permission_classes = (AllowAny,)
     def post(self, request, format=None):
         serializer = FunderSignUpSerializer(data = request.data)
         if serializer.is_valid():
@@ -48,8 +42,8 @@ class FunderSignUp(APIView):
                 return Response({'status':False , 'error':'103'}, status=status.HTTP_200_OK) # inapropriate input
 
 
-@permission_classes((IsAuthenticated,))
 class GetUserInfo(APIView):
+    permission_classes = (IsAuthenticated,)
     def get(self, request, format=None):
         funder = Funder.objects.get(user=request.user)
         serializer = GetUserInfoSerializer( funder)
@@ -58,31 +52,30 @@ class GetUserInfo(APIView):
 
 
 
-@permission_classes((IsAuthenticated,))
 class GetHistory(APIView):
-
+    permission_classes = (IsAuthenticated,)
     def get(self, request, format=None):
         funder = Funder.objects.get(user = request.user)
         dic = dict()
 
-        serializer = GetHistorySerialzer(History.objects.filter(funder=funder, public_or_specefic = 'Ø¹Ø§Ù…', help_or_contribute='Ú©Ù…Ú©' ), many=True)
+        serializer = GetHistorySerialzer(History.objects.filter(funder=funder, public_or_specefic = 'عام', help_or_contribute='کمک' ), many=True)
         dic['public_help'] = serializer.data
 
-        serializer = GetHistorySerialzer(History.objects.filter(funder = funder, public_or_specefic = 'Ø¹Ø§Ù…', help_or_contribute='Ø³Ù‡Ø§Ù…' ), many=True)
+        serializer = GetHistorySerialzer(History.objects.filter(funder = funder, public_or_specefic = "عام", help_or_contribute="سهام" ), many=True)
         dic['public_stock'] = serializer.data
 
-        serializer = GetHistorySerialzer(History.objects.filter(funder = funder, public_or_specefic = 'Ø®Ø§Øµ', help_or_contribute='Ú©Ù…Ú©' ), many=True)
+        serializer = GetHistorySerialzer(History.objects.filter(funder = funder, public_or_specefic = "خاص", help_or_contribute="کمک" ), many=True)
         dic['specefic_help'] = serializer.data
 
-        serializer = GetHistorySerialzer(History.objects.filter(funder = funder, public_or_specefic = 'Ø®Ø§Øµ', help_or_contribute='Ø³Ù‡Ø§Ù…' ), many=True)
+        serializer = GetHistorySerialzer(History.objects.filter(funder = funder, public_or_specefic = "خاص", help_or_contribute="سهام" ), many=True)
         dic['specefic_stock'] = serializer.data
 
         return Response(dic, status=status.HTTP_200_OK)
 
 
-@permission_classes((IsAuthenticated,))
-class Funding(APIView):
 
+class Funding(APIView):
+    permission_classes = (IsAuthenticated,)
     def post(self, request, format=None):
         serializer = FundingSerializer(data=request.data)
         if serializer.is_valid():
