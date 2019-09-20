@@ -18,7 +18,21 @@ from company.models import *
 # Create your views here.
 
 
-@permission_classes((IsAuthenticated,))
+@permission_classes((AllowAny,))
+class FunderLogin(APIView):
+    def post(self, request, format=None):
+        # try:
+        user = User.objects.get(username=request.data['phone_number'])
+        if not user.check_password(request.data['national_code']):
+            return Response({'status': False, 'error': '104'}, status=status.HTTP_200_OK)   #incorrect user pass
+        else:
+            token, _ = Token.objects.get_or_create(user=user)
+            return Response({'status':True, 'token': token.key}, status=status.HTTP_200_OK)
+        # except:
+        return Response({'status': False, 'error': '104'}, status=status.HTTP_200_OK)   #incorrect user pass
+
+
+@permission_classes((AllowAny,))
 class FunderSignUp(APIView):
     def post(self, request, format=None):
         serializer = FunderSignUpSerializer(data = request.data)
@@ -28,13 +42,10 @@ class FunderSignUp(APIView):
                                                 email=serializer.data['email'], first_name=serializer.data['first_name'], last_name=serializer.data['last_name'],
                                                 )
                 funder = Funder.objects.create(user=user, phone_number=serializer.data['phone_number'], national_code= serializer.data['national_code'])
-                return Response({'status':True}, status=status.HTTP_200_OK)
+                token, _ = Token.objects.get_or_create(user=user)
+                return Response({'status':True, 'token': token.key}, status=status.HTTP_200_OK)
             except:
                 return Response({'status':False , 'error':'103'}, status=status.HTTP_200_OK) # inapropriate input
-                
-
-
-
 
 
 @permission_classes((IsAuthenticated,))
@@ -54,24 +65,19 @@ class GetHistory(APIView):
         funder = Funder.objects.get(user = request.user)
         dic = dict()
 
-        serializer = GetHistorySerialzer(History.objects.filter(funder = funder, public_or_specefic = 'عام', help_or_contribute='کمک' ), many=True)
+        serializer = GetHistorySerialzer(History.objects.filter(funder=funder, public_or_specefic = 'Ø¹Ø§Ù…', help_or_contribute='Ú©Ù…Ú©' ), many=True)
         dic['public_help'] = serializer.data
 
-        serializer = GetHistorySerialzer(History.objects.filter(funder = funder, public_or_specefic = 'عام', help_or_contribute='سهام' ), many=True)
+        serializer = GetHistorySerialzer(History.objects.filter(funder = funder, public_or_specefic = 'Ø¹Ø§Ù…', help_or_contribute='Ø³Ù‡Ø§Ù…' ), many=True)
         dic['public_stock'] = serializer.data
 
-        serializer = GetHistorySerialzer(History.objects.filter(funder = funder, public_or_specefic = 'خاص', help_or_contribute='کمک' ), many=True)
+        serializer = GetHistorySerialzer(History.objects.filter(funder = funder, public_or_specefic = 'Ø®Ø§Øµ', help_or_contribute='Ú©Ù…Ú©' ), many=True)
         dic['specefic_help'] = serializer.data
 
-        serializer = GetHistorySerialzer(History.objects.filter(funder = funder, public_or_specefic = 'خاص', help_or_contribute='سهام' ), many=True)
+        serializer = GetHistorySerialzer(History.objects.filter(funder = funder, public_or_specefic = 'Ø®Ø§Øµ', help_or_contribute='Ø³Ù‡Ø§Ù…' ), many=True)
         dic['specefic_stock'] = serializer.data
 
-
         return Response(dic, status=status.HTTP_200_OK)
-
-
-
-
 
 
 @permission_classes((IsAuthenticated,))
